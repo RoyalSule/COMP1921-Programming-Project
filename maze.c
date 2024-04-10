@@ -83,9 +83,9 @@ void free_maze(maze *this) // This test is adapted from an example provided on: 
  */
 int get_width(FILE *file) // Line 91 was adapted from an example provided on: https://stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input
 {
-    int width;
     int buffer_size = 1024;
     char line[buffer_size];
+    int width = 0;
 
     if (fgets(line, buffer_size, file) != NULL) {
         line[strcspn(line, "\n")] = 0;
@@ -108,12 +108,19 @@ int get_width(FILE *file) // Line 91 was adapted from an example provided on: ht
  */
 int get_height(FILE *file)
 {
-    int ch = 0;
+    int buffer_size = 1024;
+    char lines[buffer_size];
     int height = 0;
 
+    if (fgets(line, buffer_size, file) != NULL) {
+        height++;
+    }
+
     while (!feof(file)) {
-        ch = fgetc(file);
-        if ()
+        c = fgetc(file);
+        if (c = '\n'){
+            height++;
+        }
     }
 
     if (height > MAX_DIM || height < MIN_DIM) {
@@ -185,6 +192,11 @@ void move(maze *this, coord *player, char direction)
  */
 int has_won(maze *this, coord *player)
 {
+    if (player->x == this->end->x && player->y == this->end->y) {
+        return 1;
+    }
+
+    return 0;
 }
 
 int main()
