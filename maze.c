@@ -216,32 +216,46 @@ void print_maze(maze *this, coord *player)
  */
 void move(maze *this, coord *player, char direction)
 {
+    int current_x = player->x;
+    int current_y = player->y;
+    
     switch(direction) {
-        case 'W':
+        case 'W': 
         case 'w':
-            player->y--;
+            current_y--;
             break;
 
         case 'A':
         case 'a':
-            player->x--;
+            current_x--;
             break;
 
         case 'S':
         case 's':
-            player->y++;
+            current_y++;
             break;
 
         case 'D':
         case 'd':
-            player->x++;
+            current_x++;
             break;
 
         default:
             return;
     }
     
-    if ()
+    if (current_x < 0 || current_x > this->width - 1|| current_y < 0 || current_y > this->height - 1) {
+        printf("The player cannot move off the edge of the map\n");
+        return;
+    }
+
+    if (this->map[player->x][player->y] = '#') {
+        printf("The player cannot move throught walls\n");
+        return;
+    }
+
+    player->x = current_x;
+    player->y = current_y;
 }
 
 /**
@@ -260,9 +274,13 @@ int has_won(maze *this, coord *player)
     return 0;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     // check args
+    if (argc < 2) {
+        printf("Error: invalid argument\n");
+        return EXIT_ARG_ERROR; 
+    }
 
     // set up some useful variables (you can rename or remove these if you want)
     coord *player;
@@ -270,15 +288,46 @@ int main()
     FILE *f;
 
     // open and validate mazefile
+    f = fopen(argv[1], "r");
+
+    if (f = NULL) {
+        printf("Error: invalid file\n");
+        return EXIT_FILE_ERROR;
+    }
 
     // read in mazefile to struct
+    read_maze(this_maze, f);
 
     // maze game loop
+    char input;
+
+    while (has_won(this_maze, player)) {
+        printf("Enter command (W/A/S/D) to move through the maze, M to view an image of the map.\n");
+        scanf("%c", &input);
+
+        switch(input) {
+            case 'W': case 'w':
+            case 'A': case 'a':
+            case 'S': case 's':
+            case 'D': case 'd':
+                move(this_maze, player, input);
+                break;
+            
+            case 'M': case 'm':
+                print_maze(this_maze, player);
+                break;
+
+            default:
+                printf("Error: invalid input");
+        }
+    }
 
     // win
+    printf("Congratulations, you have exiteed the maze!\n");
 
     // return, free, exit
-
     fclose(f);
+    free_maze(this_maze);
+
     return 0;
 }
