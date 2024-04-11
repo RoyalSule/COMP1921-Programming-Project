@@ -81,15 +81,17 @@ void free_maze(maze *this) // This test is adapted from an example provided on: 
  * @param file the file pointer to check
  * @return int 0 for error, or a valid width (5-100)
  */
-int get_width(FILE *file) // Line 91 was adapted from an example provided on: https://stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input
-{
-    int buffer_size = 1024;
-    char line[buffer_size];
+int get_width(FILE *file) {
+    char c;
     int width = 0;
 
-    if (fgets(line, buffer_size, file) != NULL) {
-        line[strcspn(line, "\n")] = 0;
-        width = strlen(line);
+    fseek(file, 0, SEEK_SET);
+
+    while ((c = fgetc(file)) != EOF) {
+        if (c == '\n') {
+            break;
+        }
+        width++;
     }
 
     if (width > MAX_DIM || width < MIN_DIM) {
@@ -108,26 +110,22 @@ int get_width(FILE *file) // Line 91 was adapted from an example provided on: ht
  */
 int get_height(FILE *file)
 {
-    int buffer_size = 1024;
-    char lines[buffer_size];
+    char c;
     int height = 0;
 
-    if (fgets(line, buffer_size, file) != NULL) {
-        height++;
-    }
+    fseek(file, 0, SEEK_SET);
 
-    while (!feof(file)) {
-        c = fgetc(file);
-        if (c = '\n'){
+    while ((c = fgetc(file)) != EOF) {
+        if (c == '\n') {
             height++;
         }
     }
 
     if (height > MAX_DIM || height < MIN_DIM) {
-        printf("Error: invalid height\n");
+        printf("Error: invalid width\n");
         return 0;
     }
-    
+
     return height;
 }
 
@@ -140,6 +138,44 @@ int get_height(FILE *file)
  */
 int read_maze(maze *this, FILE *file)
 {
+    char c;
+    int i, j = 0;
+
+    fseek(file, 0, SEEK_SET);
+
+    while ((c = fgetc(file)) != EOF) {
+        if (c == '\n') {
+            i = 0;
+            j++;
+            continue;
+        }
+
+        if (i < this->width) {
+            this->map[i][j] = c;
+
+            if (c == 'S') {
+                this->start.x = i;
+                this->start.y = j;
+            }
+            else if (c == 'E') {
+                this->end.x = i;
+                this->end.y = j;
+            }
+        }
+        else {
+            printf("Error: invalid width\n");
+            return 1;
+        }
+
+        i++;
+    }
+
+    if (j > this->height) {
+        printf("Error: invalid height\n");
+        return 1;
+    }
+
+    return 0;
 }
 
 /**
@@ -180,7 +216,32 @@ void print_maze(maze *this, coord *player)
  */
 void move(maze *this, coord *player, char direction)
 {
+    switch(direction) {
+        case 'W':
+        case 'w':
+            player->y--;
+            break;
 
+        case 'A':
+        case 'a':
+            player->x--;
+            break;
+
+        case 'S':
+        case 's':
+            player->y++;
+            break;
+
+        case 'D':
+        case 'd':
+            player->x++;
+            break;
+
+        default:
+            return;
+    }
+    
+    if ()
 }
 
 /**
@@ -192,7 +253,7 @@ void move(maze *this, coord *player, char direction)
  */
 int has_won(maze *this, coord *player)
 {
-    if (player->x == this->end->x && player->y == this->end->y) {
+    if (player->x == this->end.x && player->y == this->end.y) {
         return 1;
     }
 
@@ -208,9 +269,6 @@ int main()
     maze *this_maze = malloc(sizeof(maze));
     FILE *f;
 
-    f = fopen("reg_5x5.txt", "r");
-    printf("%d\n",get_width(f));
-    printf("%d\n",get_height(f));
     // open and validate mazefile
 
     // read in mazefile to struct
