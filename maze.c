@@ -1,6 +1,6 @@
 /**
  * @file maze.c
- * @author Royal Sule
+ * @author (YOUR NAME)
  * @brief Code for the maze game for COMP1921 Assignment 2
  * NOTE - You can remove or edit this file however you like - this is just a provided skeleton code
  * which may be useful to anyone who did not complete assignment 1.
@@ -43,10 +43,9 @@ typedef struct __Maze
  * @param width width to allocate
  * @return int 0 on success, 1 on fail
  */
-int create_maze(maze *this, int height, int width) // This test is adapted from an example provided on: https://www.studysmarter.co.uk/explanations/computer-science/computer-programming/2d-array-in-c/
+int create_maze(maze *this, int height, int width) // Lines 54 - 58 were adapted from an example provided on: https://www.studysmarter.co.uk/explanations/computer-science/computer-programming/2d-array-in-c/
 {
     if (height > MAX_DIM || height < MIN_DIM || width > MAX_DIM || width < MIN_DIM) {
-        printf("Error: invalid dimensions\n");
         return 1;
     }
 
@@ -67,7 +66,7 @@ int create_maze(maze *this, int height, int width) // This test is adapted from 
  *
  * @param this the pointer to the struct to free
  */
-void free_maze(maze *this) // This test is adapted from an example provided on: https://www.studysmarter.co.uk/explanations/computer-science/computer-programming/2d-array-in-c/
+void free_maze(maze *this) // Lines 70 - 73 were adapted from an example provided on: https://www.studysmarter.co.uk/explanations/computer-science/computer-programming/2d-array-in-c/
 {
     for (int i = 0; i < this->height; ++i) {
         free(this->map[i]);
@@ -81,7 +80,8 @@ void free_maze(maze *this) // This test is adapted from an example provided on: 
  * @param file the file pointer to check
  * @return int 0 for error, or a valid width (5-100)
  */
-int get_width(FILE *file) {
+int get_width(FILE *file) // Lines 84 - 92 were adapted from an example provided on: https://www.quora.com/How-do-I-read-the-1st-line-of-a-file-in-C-using-File-Handling
+{
     char c;
     int width = 0;
 
@@ -95,7 +95,6 @@ int get_width(FILE *file) {
     }
 
     if (width > MAX_DIM || width < MIN_DIM) {
-        printf("Error: invalid width\n");
         return 0;
     }
 
@@ -108,21 +107,20 @@ int get_width(FILE *file) {
  * @param file the file pointer to check
  * @return int 0 for error, or a valid height (5-100)
  */
-int get_height(FILE *file)
+int get_height(FILE *file) // Line 119 was adapted from an example provided on: https://stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input
 {
-    char c;
+    int buffer_size = 1024;
+    char line[buffer_size];
     int height = 0;
 
     fseek(file, 0, SEEK_SET);
 
-    while ((c = fgetc(file)) != EOF) {
-        if (c == '\n') {
-            height++;
-        }
+    while (fgets(line, buffer_size, file) != NULL) {
+        line[strcspn(line, "\n")] = 0;
+        height++;
     }
 
     if (height > MAX_DIM || height < MIN_DIM) {
-        printf("Error: invalid width\n");
         return 0;
     }
 
@@ -138,38 +136,53 @@ int get_height(FILE *file)
  */
 int read_maze(maze *this, FILE *file)
 {
-    char c;
-    int i = 0, j = 0;
+    int buffer_size = 1024;
+    char line[buffer_size];
+    int i, j = 0;
+    int count_start = 0, count_end = 0;
 
     fseek(file, 0, SEEK_SET);
 
-    while ((c = fgetc(file)) != EOF) {
-        if (c == '\n') {
-            i = 0;
-            j++;
-            continue;
+    while (fgets(line, buffer_size, file) != NULL) {
+        line[strcspn(line, "\n")] = 0;
+
+        if (j > this->height - 1) {
+            return 1;
         }
-        if (i < this->width) {
+
+        for (i = 0; i < strlen(line); i++) {
+            char c = line[i];
+
+            if (c != 'S' && c != 'E' && c != ' ' && c != '#' && c != '\n') {
+                return 1;
+            }
+
             this->map[j][i] = c;
 
-            if(c == 'S') {
+            if (line[i] == 'S') {
+                count_start++;
                 this->start.x = i;
                 this->start.y = j;
             }
-            else if (c == 'E') {
+            else if (line[i] == 'E') {
+                count_end++;
                 this->end.x = i;
                 this->end.y = j;
             }
-            i++;
         }
-        else {
-            printf("Error: invalid width\n");
+
+        if (i != this->width) {
             return 1;
         }
+
+        j++;
     }
 
-    if (j > this->height) {
-        printf("Error: ivalid height\n");
+    if (j != this->height) {
+        return 1;
+    }
+
+    if (count_start != 1 || count_end != 1) {
         return 1;
     }
 
@@ -243,12 +256,12 @@ void move(maze *this, coord *player, char direction)
     }
     
     if (current_x < 0 || current_x > this->width - 1|| current_y < 0 || current_y > this->height - 1) {
-        printf("The player cannot move off the edge of the map\n");
+        printf("The player cannot move off the edge of the map, try again!\n");
         return;
     }
 
     if (this->map[current_y][current_x] == '#') {
-        printf("The player cannot move throught walls\n");
+        printf("The player cannot move throught walls, try again!\n");
         return;
     }
 
@@ -268,7 +281,6 @@ int has_won(maze *this, coord *player)
     if (player->x == this->end.x && player->y == this->end.y) {
         return 1;
     }
-
     return 0;
 }
 
@@ -276,60 +288,37 @@ int main(int argc, char *argv[])
 {
     // check args
     if (argc < 2) {
-        printf("Error: invalid argument\n");
-        return EXIT_ARG_ERROR; 
+        return EXIT_ARG_ERROR;
     }
 
     // set up some useful variables (you can rename or remove these if you want)
     coord *player;
     maze *this_maze = malloc(sizeof(maze));
-    FILE *f;
-    char input;
+    FILE *file;
 
     // open and validate mazefile
-    f = fopen(argv[1], "r");
+    file = fopen(argv[1], "r");
 
-    if (f == NULL) {
-        printf("Error: invalid file\n");
+    if (file == NULL) {
         return EXIT_FILE_ERROR;
     }
 
     // read in mazefile to struct
-    create_maze(this_maze, 5, 5);
-
-    read_maze(this_maze, f);
-    fclose(f);
-
-    player->x = this_maze->start.x;
-    player->y = this_maze->start.y;
-
-    // maze game loop
-    while (!has_won(this_maze, player)) {
-        printf("Enter command (W/A/S/D) to move through the maze, M to view an image of the map.\n");
-        scanf(" %c", &input);
-
-        switch(input) {
-            case 'W': case 'w':
-            case 'A': case 'a':
-            case 'S': case 's':
-            case 'D': case 'd':
-                move(this_maze, player, input);
-                break;
-            
-            case 'M': case 'm':
-                print_maze(this_maze, player);
-                printf("\n");
-                break;
-                
-            default:
-                printf("Error: invalid input\n");
-        }
+    if (create_maze(this_maze, 9, 15) != 0) {
+        return EXIT_MAZE_ERROR;
     }
 
+    if (read_maze(this_maze, file) != 0) {
+        return EXIT_MAZE_ERROR;
+    }
+
+    // maze game loop
+
     // win
-    printf("Congratulations, you have exited the maze!\n");
 
     // return, free, exit
+    fclose(file);
     free_maze(this_maze);
+
     return EXIT_SUCCESS;
 }
