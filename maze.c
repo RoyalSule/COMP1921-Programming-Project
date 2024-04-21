@@ -263,10 +263,7 @@ typedef struct __Maze {
  * @return int 0 for false, 1 for true
  */
  int has_won(Maze *this, Coord *player) {
-    if (player->x == this->end.x && player->y == this->end.y) {
-        return 1;
-    }
-    return 0;
+    return (player->x == this->end.x && player->y == this->end.y);
  }
 
 int main(int argc, char *argv[])
@@ -281,17 +278,22 @@ int main(int argc, char *argv[])
     FILE *file = fopen(argv[1], "r");
 
     if (file == NULL) {
-        printf("File does not exist.\n");
+        printf("Error: file does not exist\n");
         return EXIT_FILE_ERROR;
     }
 
     Maze *this = malloc(sizeof(Maze));
 
+    if (this == NULL) {
+        fprintf(stderr, "Error: memory allocation failed\n");
+        return EXIT_MAZE_ERROR;
+    }
+
     int height = get_height(file);
     int width = get_width(file);
 
     if (create_maze(this, height, width) != 0) {
-        printf("Failed to create maze.\n");
+        printf("Error: failed to create maze.\n");
         fclose(file);
         free_maze(this);
         return EXIT_MAZE_ERROR;
@@ -299,7 +301,7 @@ int main(int argc, char *argv[])
 
     // read in mazefile to struct
     if (read_maze(this, file) != 0) {
-        printf("Failed to read maze from file.\n");
+        printf("Error: failed to read file\n");
         fclose(file);
         free_maze(this);
         return EXIT_FILE_ERROR;
@@ -311,10 +313,10 @@ int main(int argc, char *argv[])
     Coord *player;
     char input;
 
-    printf("Use (W/A/S/D) to move through the maze, M to view an image of the map.\n");
-
     player->x = this->start.x;
     player->y = this->start.y;
+
+    printf("Use (W/A/S/D) to move through the maze, M to view an image of the map.\n");
 
     while(!has_won(this, player)) {
         scanf(" %c", &input);
