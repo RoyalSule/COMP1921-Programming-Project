@@ -45,6 +45,7 @@ typedef struct __Maze {
  * @return int 0 on success, 1 on fail
  */
  int create_maze(Maze *this, int height, int width) { 
+    // This test is adapted from an example provided on: https://www.studysmarter.co.uk/explanations/computer-science/computer-programming/2d-array-in-c/
     if (height > MAX_DIM || height < MIN_DIM || width > MAX_DIM || width < MIN_DIM) {
         return 1;
     }
@@ -53,7 +54,6 @@ typedef struct __Maze {
     this->width = width;
 
     this->map = (char**)malloc(sizeof(char*) * height);
-
     for (int i = 0; i < height; ++i) {
         this->map[i] = (char*)malloc(sizeof(char) * width);
     }
@@ -67,6 +67,7 @@ typedef struct __Maze {
  * @param this the pointer to the struct to free
  */
  void free_maze(Maze *this) { 
+    // This test is adapted from an example provided on: https://www.studysmarter.co.uk/explanations/computer-science/computer-programming/2d-array-in-c/
     for (int i = 0; i < this->height; ++i) {
         free(this->map[i]);
     }
@@ -80,6 +81,7 @@ typedef struct __Maze {
  * @return int 0 for error, or a valid width (5-100)
  */
  int get_width(FILE *file) {
+     // This test is adapted from an example provided on: https://www.quora.com/How-do-I-read-the-1st-line-of-a-file-in-C-using-File-Handling
     int width = 0;
     char c;
 
@@ -93,7 +95,6 @@ typedef struct __Maze {
     }
 
     if (width > MAX_DIM || width < MIN_DIM) {
-        printf("ValueError: invalid width\n");
         return 0;
     }
 
@@ -118,7 +119,6 @@ typedef struct __Maze {
     }
 
     if (height > MAX_DIM || height < MIN_DIM) {
-        printf("ValueError: invalid height\n");
         return 0;
     }
 
@@ -136,20 +136,17 @@ typedef struct __Maze {
     int i = 0;
     char line[BUFFER_SIZE];
     int start_count = 0, end_count = 0;
-
+    
     fseek(file, 0, SEEK_SET);
 
     while (fgets(line, BUFFER_SIZE, file) != NULL) {
-        int length = strlen(line);
-        printf("%d\n", length);
-
         line[strcspn(line, "\n")] = 0;
 
         if (i >= this->height) {
             return 1;
         }
 
-        for (int j = 0; j < length; j++) {
+        for (int j = 0; j < strlen(line); j++) {
             char c = line[j];
 
             if (c != 'S' && c != 'E' && c != ' ' && c != '#' && c != '\n') {
@@ -162,7 +159,7 @@ typedef struct __Maze {
                 start_count++;
                 this->start.x = j;
                 this->start.y = i;
-            }
+            } 
             else if (c == 'E') {
                 end_count++;
                 this->end.x = j;
@@ -170,17 +167,21 @@ typedef struct __Maze {
             }
         }
 
+        if (strlen(line) != this->width) {
+            return 1;
+        }
+
         i++;
     }
 
-    if (i != get_height(file)) {
+    if (i != this->height) {
         return 1;
     }
 
-    if (start_count != 1 || start_count != 1) {
+    if (start_count != 1 || end_count != 1) {
         return 1;
     }
-
+    
     return 0;
  }
 
@@ -263,9 +264,9 @@ typedef struct __Maze {
  */
  int has_won(Maze *this, Coord *player) {
     if (player->x == this->end.x && player->y == this->end.y) {
-        return 0;
+        return 1;
     }
-    return 1;
+    return 0;
  }
 
 int main(int argc, char *argv[])
@@ -284,12 +285,25 @@ int main(int argc, char *argv[])
         return EXIT_FILE_ERROR;
     }
 
-    //
     Maze *this = malloc(sizeof(Maze));
 
-    create_maze(this, 9, 15);
+    int height = get_height(file);
+    int width = get_width(file);
+
+    if (create_maze(this, height, width) != 0) {
+        printf("Failed to create maze.\n");
+        fclose(file);
+        free_maze(this);
+        return EXIT_MAZE_ERROR;
+    }
+
     // read in mazefile to struct
-    read_maze(this, file);
+    if (read_maze(this, file) != 0) {
+        printf("Failed to read maze from file.\n");
+        fclose(file);
+        free_maze(this);
+        return EXIT_FILE_ERROR;
+    }
     
     fclose(file);
 
@@ -297,10 +311,12 @@ int main(int argc, char *argv[])
     Coord *player;
     char input;
 
+    printf("Use (W/A/S/D) to move through the maze, M to view an image of the map.\n");
+
     player->x = this->start.x;
     player->y = this->start.y;
 
-    while(has_won(this, player)) {
+    while(!has_won(this, player)) {
         scanf(" %c", &input);
 
         switch(input) {
@@ -315,9 +331,6 @@ int main(int argc, char *argv[])
                 print_maze(this, player);
                 printf("\n");
                 break;
-
-            case 'Q': case 'q':
-                return 1;
 
             default:
                 printf("Invalid input, please try again.\n");
