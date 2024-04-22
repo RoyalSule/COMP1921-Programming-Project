@@ -78,7 +78,7 @@ void find() {
 
 }
 
-void union() {
+void uni() {
 
 }
 
