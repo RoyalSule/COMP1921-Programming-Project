@@ -1,10 +1,10 @@
 /**
- * @file maze.c
- * @author Royal Sule
- * @brief Code for the maze game for COMP1921 Assignment 2
- * NOTE - You can remove or edit this file however you like - this is just a provided skeleton code
- * which may be useful to anyone who did not complete assignment 1.
- */
+* @file maze.c
+* @author Royal Sule 
+* @brief Code for the maze game for COMP1921 Assignment 2
+* NOTE - You can remove or edit this file however you like - this is just a provided skeleton code
+* which may be useful to anyone who did not complete assignment 1.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,14 +37,14 @@ typedef struct __Maze {
 } Maze;
 
 /**
- * @brief Initialise a maze object - allocate memory and set attributes
- *
- * @param this pointer to the maze to be initialised
- * @param height height to allocate
- * @param width width to allocate
- * @return int 0 on success, 1 on fail
- */
- int create_maze(Maze *this, int height, int width) { 
+* @brief Initialise a maze object - allocate memory and set attributes
+*
+* @param this pointer to the maze to be initialised
+* @param height height to allocate
+* @param width width to allocate
+* @return int 0 on success, 1 on fail
+*/
+int create_maze(Maze *this, int height, int width) { 
     // This test is adapted from an example provided on: https://www.studysmarter.co.uk/explanations/computer-science/computer-programming/2d-array-in-c/
     if (height > MAX_DIM || height < MIN_DIM || width > MAX_DIM || width < MIN_DIM) {
         return 1;
@@ -59,28 +59,28 @@ typedef struct __Maze {
     }
 
     return 0;
- }
+}
 
- /**
- * @brief Free the memory allocated to the maze struct
- *
- * @param this the pointer to the struct to free
- */
- void free_maze(Maze *this) { 
+/**
+* @brief Free the memory allocated to the maze struct
+*
+* @param this the pointer to the struct to free
+*/
+void free_maze(Maze *this) { 
     // This test is adapted from an example provided on: https://www.studysmarter.co.uk/explanations/computer-science/computer-programming/2d-array-in-c/
     for (int i = 0; i < this->height; ++i) {
         free(this->map[i]);
     }
     free(this->map);
- }
+}
 
- /**
- * @brief Validate and return the width of the mazefile
- *
- * @param file the file pointer to check
- * @return int 0 for error, or a valid width (5-100)
- */
- int get_width(FILE *file) {
+/**
+* @brief Validate and return the width of the mazefile
+*
+* @param file the file pointer to check
+* @return int 0 for error, or a valid width (5-100)
+*/
+int get_width(FILE *file) {
      // This test is adapted from an example provided on: https://www.quora.com/How-do-I-read-the-1st-line-of-a-file-in-C-using-File-Handling
     int width = 0;
     char c;
@@ -102,12 +102,12 @@ typedef struct __Maze {
 }
 
 /**
- * @brief Validate and return the height of the mazefile
- *
- * @param file the file pointer to check
- * @return int 0 for error, or a valid height (5-100)
- */
- int get_height(FILE *file) {
+* @brief Validate and return the height of the mazefile
+*
+* @param file the file pointer to check
+* @return int 0 for error, or a valid height (5-100)
+*/
+int get_height(FILE *file) {
     int height = 0;
     char line[BUFFER_SIZE];
 
@@ -123,16 +123,16 @@ typedef struct __Maze {
     }
 
     return height;
- }
+}
 
- /**
- * @brief read in a maze file into a struct
- *
- * @param this Maze struct to be used
- * @param file Maze file pointer
- * @return int 0 on success, 1 on fail
- */
- int read_maze(Maze *this, FILE *file) {
+/**
+* @brief read in a maze file into a struct
+*
+* @param this Maze struct to be used
+* @param file Maze file pointer
+* @return int 0 on success, 1 on fail
+*/
+int read_maze(Maze *this, FILE *file) {
     int i = 0;
     char line[BUFFER_SIZE];
     int start_count = 0, end_count = 0;
@@ -183,15 +183,15 @@ typedef struct __Maze {
     }
     
     return 0;
- }
+}
 
- /**
- * @brief Prints the maze out - code provided to ensure correct formatting
- *
- * @param this pointer to maze to print
- * @param player the current player location
- */
- void print_maze(Maze *this, Coord *player) {
+/**
+* @brief Prints the maze out - code provided to ensure correct formatting
+*
+* @param this pointer to maze to print
+* @param player the current player location
+*/
+void print_maze(Maze *this, Coord *player) {
     // make sure we have a leading newline..
     printf("\n");   
     for (int i = 0; i < this->height; i++) {
@@ -207,16 +207,16 @@ typedef struct __Maze {
         // end each row with a newline.
         printf("\n");
     }
- }
+}
 
- /**
- * @brief Validates and performs a movement in a given direction
- *
- * @param this Maze struct
- * @param player The player's current position
- * @param direction The desired direction to move in
- */
- void move(Maze *this, Coord *player, char direction) {
+/**
+* @brief Validates and performs a movement in a given direction
+*
+* @param this Maze struct
+* @param player The player's current position
+* @param direction The desired direction to move in
+*/
+void move(Maze *this, Coord *player, char direction) {
     int current_x = player->x;
     int current_y = player->y;
 
@@ -253,18 +253,18 @@ typedef struct __Maze {
 
     player->x = current_x;
     player->y = current_y;
- }
+}
 
- /**
- * @brief Check whether the player has won and return a pseudo-boolean
- *
- * @param this current maze
- * @param player player position
- * @return int 0 for false, 1 for true
- */
- int has_won(Maze *this, Coord *player) {
+/**
+* @brief Check whether the player has won and return a pseudo-boolean
+*
+* @param this current maze
+* @param player player position
+* @return int 0 for false, 1 for true
+*/
+int has_won(Maze *this, Coord *player) {
     return (player->x == this->end.x && player->y == this->end.y);
- }
+}
 
 int main(int argc, char *argv[])
 {
@@ -294,16 +294,16 @@ int main(int argc, char *argv[])
 
     if (create_maze(this, height, width) != 0) {
         printf("Error: failed to create maze.\n");
-        fclose(file);
         free_maze(this);
+        fclose(file);
         return EXIT_MAZE_ERROR;
     }
 
     // read in mazefile to struct
     if (read_maze(this, file) != 0) {
         printf("Error: failed to read file\n");
-        fclose(file);
         free_maze(this);
+        fclose(file);
         return EXIT_FILE_ERROR;
     }
     
