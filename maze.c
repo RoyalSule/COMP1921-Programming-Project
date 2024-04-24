@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
     Maze *this = malloc(sizeof(Maze));
 
     if (this == NULL) {
-        fprintf(stderr, "Error: memory allocation failed\n");
+        printf("Error: memory allocation failed\n");
         return EXIT_MAZE_ERROR;
     }
 
