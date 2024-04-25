@@ -1,107 +1,76 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 // defines for max and min permitted dimensions
 #define MAX_DIM 100
 #define MIN_DIM 5
 
+// This test is adapted from an example provide on: https://stackoverflow.com/questions/3437404/min-and-max-in-c
+#define min(x, y) ((x) < (y) ? (x) : (y))
+
+typedef struct __Cell {
+    int i, j;
+} Cell;
+
 typedef struct __Wall {
-    int u;
-    int v;
-    int count;
+    Cell u, v;
 } Wall;
 
-Wall *create_wall(int height, int width);
-void shuffle(Wall *wall, int n);
-int find(int *parent, int i);
-void uni(int *parent, int i, int j);
-void kruskal(char **array, int *arr, int height, int width, int n);
-void generate_maze(char **array, int *arr, int height, int width, int n);
+typedef struct _DisjointSet {
+    int parent;
+} DisjointSet;
 
-int main(int argc, char *argv[]) {
-    if (argc != 4) {
-        fprintf(stderr, "Usage: %s maze4.txt <width> <height>\n", argv[0]);
-        return 1;
-    }
+/**
+* @brief 
+*
+* @param height
+* @param width
+* @param wall_count
+* 
+* @return 
+*/
+Wall *create_wall(int height, int width, int *wall_count) {
+    int max = height * (width - 1) + width * (height - 1);
 
-    FILE *file = fopen("maze4.txt", "w");
-
-    if (file == NULL) {
-        printf("Error: failed to open file\n");
-        return 1;
-    }
-
-    int width = atoi(argv[2]);
-    int height = atoi(argv[3]);
-
-    if (height > MAX_DIM || height < MIN_DIM || width > MAX_DIM || width < MIN_DIM) {
-        printf("Error: invalid dimensions\n");
-        return 1;
-    }
-
-    int n = width * height;
-    int set[n];
-
-    char **array = (char**)malloc(sizeof(char*) * n);
-    for(int i = 0; i < n; ++i) {
-        array[i] = (char*)malloc(sizeof(char) * n);
-    }
-
-    kruskal(array, set, height, width, n);
-    
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            fprintf(file, "%c", array[i][j]);
-        }
-        fprintf(file, "\n");
-    }
-
-    for (int i = 0; i < n; i++) {
-        free(array[i]);
-    }
-    free(array);
-
-    fclose(file);
-
-    return 0;
-}
-
-Wall *create_wall(int height, int width) {
-    int max = width * (height - 1) + height * (width - 1);
-    Wall *wall = malloc(max * sizeof(Wall));
+    Wall *wall = malloc(sizeof(Wall) * max);
     int count = 0;
 
-    for (int i = 0; i < height; i++) {
+    for(int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
-            if (j < width - 1) {
-                wall[count].u = i;
-                wall[count].v = j + 1;
+            if (j < width - 1) { 
+                Cell u = {i, j};
+                Cell v = {i, j + 1};
+                wall[count] = (Wall){u, v};
                 count++;
-            }    
+            }
             if (i < height - 1) {
-                wall[count].u = i + 1;
-                wall[count].v = j;
+                Cell u = {i, j};
+                Cell v = {i + 1, j};
+                wall[count] = (Wall){u, v};
                 count++;
             }
         }
     }
-    (*wall).count = count;
+    *wall_count = count;
 
     return wall;
 }
 
 /**
-* @brief arrange the n elements of array in random order
+* @brief 
 *
 * @param wall
-* @param n 
+* @param n
+* 
+* @return 
 */
-void shuffle(void *wall, int n) {
-    // This test is adapted from an example provided on: https://benpfaff.org/writings/clc/shuffle.html 
+void shuffle(Wall *wall, int n) {
+    // This test is adapated from an example provided on: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle 
     srand(time(NULL));
 
-    for (int i = 0; i < n - 1; i++) {
+    for (int i = n - 1; i > 0; i--) {
         int j = i + rand() / (RAND_MAX / (n - i) + 1);
         Wall t = wall[j];
         wall[j] = wall[i];
@@ -112,56 +81,147 @@ void shuffle(void *wall, int n) {
 /**
 * @brief 
 *
-* @param parent
-* @param i
+* @param set
+* @param x
+* 
+* @return 
 */
-int find(int *parent, int i) {
+int find(DisjointSet *set, int x) {
     // This test is adapted from an example provided on: https://en.wikipedia.org/wiki/Disjoint-set_data_structure 
+    if (set[x].parent != x) {
+        set[x].parent = find(set, set[x].parent);
+        return set[x].parent;
+    }
+    else {
+        return x;
+    }
 }
 
 /**
 * @brief 
 *
-* @param i
-* @param j
+* @param set
+* @param x
+* @param y
+* 
+* @return 
 */
-void uni(int *parent, int i, int j) {
+void uni(DisjointSet *set, int x, int y) {
+    // This test is adapted from an example provided on: https://en.wikipedia.org/wiki/Disjoint-set_data_structure 
+    int root_x = find(set, x);
+    int root_y = find(set, y);
 
+    set[root_y].parent = root_x;
 }
 
 /**
-* @brief    
+* @brief 
 *
-* @param this 
 * @param arr
-* @param n
+* @param height
+* @param width
+* 
+* @return 
 */
-void kruskal(char **array, int *set, int height, int width, int n) {
-    // create a list of all walls
-    Wall *wall = create_wall(height, width);
+void kruskal(char **arr, int height, int width) {
+    // This test is adapted from an example provided on: https://en.wikipedia.org/wiki/Maze_generation_algorithm
+    // Create a list of all the walls
+    int wall_count;
+    Wall *wall = create_wall(height, width, &wall_count);
 
-    // create a set for each cell, each containing just that one cell
-    for(int i = 0; i < n; i++) {
-        set[i] = i;
+    // Create a set for each wall, each containing just that one cell
+    int n = height * width;
+    DisjointSet *set = malloc(sizeof(DisjointSet) * n);
+
+    for (int i = 0; i < n; i++) {
+        set[i].parent = i;
     }
 
-    for (int i = 0; i < (*wall).count; i++) {
-        printf("%d %d\n", wall[i].u, wall[i].v);
-    }
-    // for each wall in a random order
-    shuffle(wall, (*wall).count);
+    // For each wall in some random order
+    shuffle(wall, wall_count);
 
-        // if the cells divided by this wall belong to distinct sets
-            // remove the current wall
-            // join the sets of the formally divided cells
+    for(int i = 0; i < wall_count; i++) {
+        int u = wall[i].u.i * width + wall[i].u.j;
+        int v = wall[i].v.i * width + wall[i].v.j;
 
-    free(wall);
-}
+        // If the cells divided by this wall belong to distinct sets
+        if (find(set, u) != find(set, v)) {
+            // Remove the current wall
+            if (wall[i].u.i == wall[i].v.i) {
+                arr[wall[i].u.i][min(wall[i].u.j, wall[i].v.j) + 1] = ' ';
+            }
+            else {
+                arr[min(wall[i].u.i, wall[i].v.i) + 1][wall[i].u.j] = ' ';
+            }
 
-void generate_maze(char **array, int *set, int height, int width, int n) {
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            array[i][j] = '#';
+            // Join the sets of the formally divided cells
+            uni(set, u, v);
         }
     }
+
+    free(wall);
+    free(set);
+}
+
+/**
+* @brief 
+*
+* @param arr
+* @param height
+* @param width
+* 
+* @return 
+*/
+void generate_maze(char **arr, int height, int width) {
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            arr[i][j] = '#';
+        }
+    }
+
+    kruskal(arr, height, width);
+
+    arr[0][0] = 'S';
+    arr[height - 1][width - 1] = 'E';
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 4) {
+        fprintf(stderr, "Usage: %s <mazefile path> <width> <height>\n", argv[0]);
+        return 1;
+    }  
+
+    // Lines 134 - 138 were adapted from an example provided on: https://stackoverflow.com/questions/9840629/create-a-file-if-one-doesnt-exist-c
+    FILE *file = fopen(argv[1], "w");
+
+    int width = atoi(argv[2]);
+    int height = atoi(argv[3]);
+
+    if (height > MAX_DIM || height < MIN_DIM || width > MAX_DIM || width < MIN_DIM) {
+        printf("Error: invalid dimensions\n");
+        return 1;
+    }
+
+    char **arr = (char**)malloc(sizeof(char*) * height);
+    for(int i = 0; i < height; ++i) {
+        arr[i] = (char*)malloc(sizeof(char) * width);
+    }
+
+    generate_maze(arr, height, width);
+    
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            fprintf(file, "%c", arr[i][j]);
+        }
+        fprintf(file, "\n");
+    }
+
+    for (int i = 0; i < height; i++) {
+        free(arr[i]);
+    }
+    free(arr);
+
+    fclose(file);
+
+    return 0;
 }
