@@ -97,7 +97,7 @@ Wall *create_wall(int height, int width) {
 * @param wall
 * @param n 
 */
-void shuffle(Wall *wall, int n) {
+void shuffle(void *wall, int n) {
     // This test is adapted from an example provided on: https://benpfaff.org/writings/clc/shuffle.html 
     srand(time(NULL));
 
