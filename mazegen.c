@@ -7,9 +7,6 @@
 #define MAX_DIM 100
 #define MIN_DIM 5
 
-// This test is adapted from an example provide on: https://stackoverflow.com/questions/3437404/min-and-max-in-c
-#define min(x, y) ((x) < (y) ? (x) : (y))
-
 typedef struct __Cell {
     int i, j;
 } Cell;
@@ -23,18 +20,18 @@ typedef struct _DisjointSet {
 } DisjointSet;
 
 /**
-* @brief 
+* @brief Creates the maximum number of walls possible in an array presenting the maze
 *
-* @param height
-* @param width
-* @param wall_count
+* @param height Height of the maze
+* @param width Width of the maze
+* @param total Total number of walls 
 * 
-* @return 
+* @return Wall struct
 */
-Wall *create_wall(int height, int width, int *wall_count) {
-    int max = height * (width - 1) + width * (height - 1);
+Wall *create_wall(int height, int width, int *total) {
+    int n = height * (width - 1) + width * (height - 1);
 
-    Wall *wall = malloc(sizeof(Wall) * max);
+    Wall *wall = malloc(sizeof(Wall) * n);
     int count = 0;
 
     for(int i = 0; i < height; i++) {
@@ -53,18 +50,16 @@ Wall *create_wall(int height, int width, int *wall_count) {
             }
         }
     }
-    *wall_count = count;
+    *total = count;
 
     return wall;
 }
 
 /**
-* @brief 
+* @brief Shuffles the elements of the Wall struct
 *
-* @param wall
-* @param n
-* 
-* @return 
+* @param wall Wall struct to be used
+* @param n Number of elements in wall
 */
 void shuffle(Wall *wall, int n) {
     // This test is adapated from an example provided on: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle 
@@ -79,12 +74,12 @@ void shuffle(Wall *wall, int n) {
 }
 
 /**
-* @brief 
+* @brief Follows the chain of parent pointers from a specified query node x until it reaches a root element
 *
-* @param set
-* @param x
+* @param set DisjointSet strcut to be used
+* @param x Given element
 * 
-* @return 
+* @return Root element it reaches
 */
 int find(DisjointSet *set, int x) {
     // This test is adapted from an example provided on: https://en.wikipedia.org/wiki/Disjoint-set_data_structure 
@@ -98,13 +93,11 @@ int find(DisjointSet *set, int x) {
 }
 
 /**
-* @brief 
+* @brief Replaces the set containing x and the set containing y with their union
 *
-* @param set
-* @param x
-* @param y
-* 
-* @return 
+* @param set DisjointSet struct to be used
+* @param x Given element
+* @param y Given element
 */
 void uni(DisjointSet *set, int x, int y) {
     // This test is adapted from an example provided on: https://en.wikipedia.org/wiki/Disjoint-set_data_structure 
@@ -115,43 +108,40 @@ void uni(DisjointSet *set, int x, int y) {
 }
 
 /**
-* @brief 
+* @brief Generate a maze using Kruskal's algorithm - produces regular patterns which are fairly easy to solve
 *
-* @param arr
-* @param height
-* @param width
-* 
-* @return 
+* @param arr Array reprenseting the maze
+* @param height Height of the maze
+* @param width Width of the maze
 */
 void kruskal(char **arr, int height, int width) {
     // This test is adapted from an example provided on: https://en.wikipedia.org/wiki/Maze_generation_algorithm
     // Create a list of all the walls
-    int wall_count;
-    Wall *wall = create_wall(height, width, &wall_count);
+    int total;
+    Wall *wall = create_wall(height, width, &total);
 
     // Create a set for each wall, each containing just that one cell
-    int n = height * width;
-    DisjointSet *set = malloc(sizeof(DisjointSet) * n);
+    DisjointSet *set = malloc(sizeof(DisjointSet) * total);
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < total; i++) {
         set[i].parent = i;
     }
 
     // For each wall in some random order
-    shuffle(wall, wall_count);
+    shuffle(wall, total);
 
-    for(int i = 0; i < wall_count; i++) {
-        int u = wall[i].u.i * width + wall[i].u.j;
-        int v = wall[i].v.i * width + wall[i].v.j;
+    for(int i = 0; i < total; i++) {
+        int u = wall[i].u.i * width + wall[i].u.j; 
+        int v = wall[i].v.i * width + wall[i].v.j; 
 
         // If the cells divided by this wall belong to distinct sets
         if (find(set, u) != find(set, v)) {
             // Remove the current wall
             if (wall[i].u.i == wall[i].v.i) {
-                arr[wall[i].u.i][min(wall[i].u.j, wall[i].v.j) + 1] = ' ';
+                arr[wall[i].u.i][wall[i].u.j + 1] = ' '; 
             }
             else {
-                arr[min(wall[i].u.i, wall[i].v.i) + 1][wall[i].u.j] = ' ';
+                arr[wall[i].u.i + 1][wall[i].u.j] = ' '; 
             }
 
             // Join the sets of the formally divided cells
@@ -164,13 +154,11 @@ void kruskal(char **arr, int height, int width) {
 }
 
 /**
-* @brief 
+* @brief Initialise an array and call kruskal to generate a maze - place the start and exit point in the maze
 *
-* @param arr
-* @param height
-* @param width
-* 
-* @return 
+* @param arr Array representing the maze
+* @param height Height of the maze
+* @param width Width of the maze
 */
 void generate_maze(char **arr, int height, int width) {
     for (int i = 0; i < height; i++) {
@@ -186,14 +174,16 @@ void generate_maze(char **arr, int height, int width) {
 }
 
 int main(int argc, char *argv[]) {
+    // Check arguments
     if (argc != 4) {
         fprintf(stderr, "Usage: %s <mazefile path> <width> <height>\n", argv[0]);
         return 1;
     }  
 
-    // Lines 134 - 138 were adapted from an example provided on: https://stackoverflow.com/questions/9840629/create-a-file-if-one-doesnt-exist-c
+    // Open mazefile
     FILE *file = fopen(argv[1], "w");
 
+    // Validate height and width of the mazefile
     int width = atoi(argv[2]);
     int height = atoi(argv[3]);
 
@@ -202,11 +192,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // Initialise array 
     char **arr = (char**)malloc(sizeof(char*) * height);
     for(int i = 0; i < height; ++i) {
         arr[i] = (char*)malloc(sizeof(char) * width);
     }
 
+    // Generate maze
     generate_maze(arr, height, width);
     
     for (int i = 0; i < height; i++) {
@@ -216,6 +208,7 @@ int main(int argc, char *argv[]) {
         fprintf(file, "\n");
     }
 
+    // Free array, close file and exit
     for (int i = 0; i < height; i++) {
         free(arr[i]);
     }
