@@ -137,9 +137,10 @@ int read_maze(Maze *this, FILE *file) {
     fseek(file, 0, SEEK_SET);
 
     while (fgets(line, BUFFER_SIZE, file) != NULL) {
+        int length = 0;
         line[strcspn(line, "\n")] = 0;
 
-        for (int j = 0; j < strlen(line); j++) {
+        for (int j = 0; line[j] != '\0'; j++) {
             char c = line[j];
 
             if (i >= this->height) {
@@ -162,9 +163,11 @@ int read_maze(Maze *this, FILE *file) {
                 this->exit.x = j;
                 this->exit.y = i;
             }
+
+            length++;
         }
 
-        if (strlen(line) != this->width) {
+        if (length != this->width) {
             return 1;
         }
 
@@ -281,7 +284,6 @@ int main(int argc, char *argv[])
 
     if (width == 0) {
         printf("MazeError: invalid width\n");
-        fclose(file);
         return EXIT_MAZE_ERROR;
     }
 
@@ -289,7 +291,6 @@ int main(int argc, char *argv[])
 
     if (height == 0) {
         printf("MazeError: invalid height\n");
-        fclose(file);
         return EXIT_MAZE_ERROR;
     }
 
@@ -298,28 +299,28 @@ int main(int argc, char *argv[])
 
     if (create_maze(this, height, width) != 0) {
         printf("MazeError: memory allocation failed\n");
-        free_maze(this);
-        fclose(file);
         return EXIT_MAZE_ERROR;
     }
 
     if (read_maze(this, file) != 0) {
         printf("MazeError: faile to read file\n");
-        free_maze(this);
-        fclose(file);
         return EXIT_FILE_ERROR;
     }
     
     fclose(file);
 
     // Maze game loop
-    Coord *player;
+    Coord *player = malloc(sizeof(Coord));
+
+    if (player == NULL) {
+        printf("MazeError: memory allocation failed\n");
+        return EXIT_MAZE_ERROR;
+    }
 
     player->x = this->start.x;
     player->y = this->start.y;
 
     char input;
-
     printf("Enter WASD to move through the maze, M to view an image of the map.\n");
 
     while (!has_won(this, player)) {
