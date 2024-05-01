@@ -284,6 +284,7 @@ int main(int argc, char *argv[])
 
     if (width == 0) {
         printf("MazeError: invalid width\n");
+        fclose(file);
         return EXIT_MAZE_ERROR;
     }
 
@@ -291,20 +292,25 @@ int main(int argc, char *argv[])
 
     if (height == 0) {
         printf("MazeError: invalid height\n");
+        fclose(file);
         return EXIT_MAZE_ERROR;
     }
 
     // Read in mazefile to struct
-    Maze *this = malloc(sizeof(Maze));
+    Maze *this_maze = malloc(sizeof(Maze));
 
-    if (create_maze(this, height, width) != 0) {
+    if (create_maze(this_maze, height, width) != 0) {
         printf("MazeError: memory allocation failed\n");
+        free_maze(this_maze);
+        fclose(file);
         return EXIT_MAZE_ERROR;
     }
 
-    if (read_maze(this, file) != 0) {
-        printf("MazeError: faile to read file\n");
-        return EXIT_FILE_ERROR;
+    if (read_maze(this_maze, file) != 0) {
+        printf("MazeError: failed to read file\n");
+        free_maze(this_maze);
+        fclose(file);
+        return EXIT_MAZE_ERROR;
     }
     
     fclose(file);
@@ -314,27 +320,31 @@ int main(int argc, char *argv[])
 
     if (player == NULL) {
         printf("MazeError: memory allocation failed\n");
+        free_maze(this_maze);
+        fclose(file);
         return EXIT_MAZE_ERROR;
     }
 
-    player->x = this->start.x;
-    player->y = this->start.y;
+    player->x = this_maze->start.x;
+    player->y = this_maze->start.y;
 
     char input;
     printf("Enter WASD to move through the maze, M to view an image of the map.\n");
 
-    while (!has_won(this, player)) {
+    while (!has_won(this_maze, player)) {
         scanf(" %c", &input);
-        move(this, player, input);
+        move(this_maze, player, input);
 
         if (input == 'm' || input == 'M') {
-            print_maze(this, player);
+            print_maze(this_maze, player);
         }
     }
 
     printf("Congratulations, you have reached the end of the maze!\n");
 
-    // Free maze and exit
-    free_maze(this);
+    // Free, exit
+    free(player);
+    free_maze(this_maze);
+
     return EXIT_SUCCESS;
 }
