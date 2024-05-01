@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 
-// defines for max and min permitted dimensions
+// Defines for max and min permitted dimensions
 #define MAX_DIM 100
 #define MIN_DIM 5
 
@@ -20,14 +20,14 @@ typedef struct _DisjointSet {
 } DisjointSet;
 
 /**
-* @brief Creates the maximum number of walls possible in an array presenting the maze
-*
-* @param height Height of the maze
-* @param width Width of the maze
-* @param total Total number of walls 
-* 
-* @return Wall struct
-*/
+ * @brief Creates the maximum number of walls possible in an array presenting the maz
+ *
+ * @param height Height of the maze
+ * @param width Width of the maze
+ * @param total Total number of walls 
+ * 
+ * @return Wall struct
+ */
 Wall *create_wall(int height, int width, int *total) {
     int n = height * (width - 1) + width * (height - 1);
 
@@ -56,11 +56,11 @@ Wall *create_wall(int height, int width, int *total) {
 }
 
 /**
-* @brief Shuffles the elements of the Wall struct
-*
-* @param wall Wall struct to be used
-* @param n Number of elements in wall
-*/
+ * @brief Shuffles the elements of the Wall struct
+ *
+ * @param wall Wall struct to be used
+ * @param n Number of elements in wall
+ */
 void shuffle(Wall *wall, int n) {
     // This test is adapated from an example provided on: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle 
     srand(time(NULL));
@@ -74,13 +74,13 @@ void shuffle(Wall *wall, int n) {
 }
 
 /**
-* @brief Follows the chain of parent pointers from a specified query node x until it reaches a root element
-*
-* @param set DisjointSet strcut to be used
-* @param x Given element
-* 
-* @return Root element it reaches
-*/
+ * @brief Follows the chain of parent pointers from a specified query node x until it reaches a root element
+ *
+ * @param set DisjointSet strcut to be used
+ * @param x Given element
+ * 
+ * @return Root element it reaches
+ */
 int find(DisjointSet *set, int x) {
     // This test is adapted from an example provided on: https://en.wikipedia.org/wiki/Disjoint-set_data_structure 
     if (set[x].parent != x) {
@@ -93,12 +93,12 @@ int find(DisjointSet *set, int x) {
 }
 
 /**
-* @brief Replaces the set containing x and the set containing y with their union
-*
-* @param set DisjointSet struct to be used
-* @param x Given element
-* @param y Given element
-*/
+ * @brief Replaces the set containing x and the set containing y with their union
+ *
+ * @param set DisjointSet struct to be used
+ * @param x Given element
+ * @param y Given element
+ */
 void uni(DisjointSet *set, int x, int y) {
     // This test is adapted from an example provided on: https://en.wikipedia.org/wiki/Disjoint-set_data_structure 
     int root_x = find(set, x);
@@ -108,12 +108,12 @@ void uni(DisjointSet *set, int x, int y) {
 }
 
 /**
-* @brief Generate a maze using Kruskal's algorithm - produces regular patterns which are fairly easy to solve
-*
-* @param arr Array reprenseting the maze
-* @param height Height of the maze
-* @param width Width of the maze
-*/
+ * @brief Generate a maze using Kruskal's algorithm - produces regular patterns which are fairly easy to solve
+ *
+ * @param arr Array reprenseting the maze
+ * @param height Height of the maze
+ * @param width Width of the maze
+ */
 void kruskal(char **arr, int height, int width) {
     // This test is adapted from an example provided on: https://en.wikipedia.org/wiki/Maze_generation_algorithm
     // Create a list of all the walls
@@ -154,12 +154,12 @@ void kruskal(char **arr, int height, int width) {
 }
 
 /**
-* @brief Initialise an array and call kruskal to generate a maze - place the start and exit point in the maze
-*
-* @param arr Array representing the maze
-* @param height Height of the maze
-* @param width Width of the maze
-*/
+ * @brief Initialise an array and call kruskal to generate a maze - place the start and exit point in the maze
+ *
+ * @param arr Array representing the maze
+ * @param height Height of the maze
+ * @param width Width of the maze
+ */
 void generate_maze(char **arr, int height, int width) {
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
