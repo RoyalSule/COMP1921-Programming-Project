@@ -20,7 +20,7 @@ typedef struct _DisjointSet {
 } DisjointSet;
 
 /**
- * @brief Creates the maximum number of walls possible in an array presenting the maz
+ * @brief Creates the maximum number of walls possible in an array presenting the maze
  *
  * @param height Height of the maze
  * @param width Width of the maze
